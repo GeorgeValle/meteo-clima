@@ -44,5 +44,9 @@ __screenshots__/
 Thumbs.db
 
 #codex-agent
+!.codex-agent/
+!.codex/
+|.code
 .codex-agent/
 .codex/
+.code

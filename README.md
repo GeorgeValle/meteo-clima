@@ -6,7 +6,8 @@ La aplicación está pensada para una experiencia simple, visualmente limpia y r
 
 ## Demo
 
-> Demo en vivo: pendiente de publicación en GitHub Pages.
+### Demo en vivo en GitHub Pages.
+https://georgevalle.github.io/meteo-clima/
 
 ## Features principales
 
@@ -120,7 +121,7 @@ pnpm run deploy
 ## Deploy
 
 El proyecto está preparado para publicación en GitHub Pages.
-
+https://georgevalle.github.io/meteo-clima/
 
 ```bash
 pnpm run deploy
