@@ -1,59 +1,150 @@
 # MeteoClima
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.5.
+MeteoClima es una SPA de clima construida con Angular que permite buscar ciudades por nombre, consultar el estado actual del tiempo desde Open-Meteo y guardar la última ciudad buscada en `localStorage`.
 
-## Development server
+La aplicación está pensada para una experiencia simple, visualmente limpia y rápida de usar, con una interfaz minimalista, alertas climáticas inferidas y autocomplete de ciudades.
 
-To start a local development server, run:
+## Demo
+
+> Demo en vivo: pendiente de publicación en GitHub Pages.
+
+## Features principales
+
+- Búsqueda de ciudades por nombre
+- Integración con Open-Meteo para geocoding y clima actual
+- Persistencia de la última ciudad buscada en `localStorage`
+- Autocomplete de ciudades a partir de 4 caracteres
+- Selección de sugerencias con mouse o teclado
+- Estado de carga y manejo de errores amigable
+- Tarjeta principal con clima actual, temperatura, sensación térmica, mínima, máxima y hora local
+- Pronóstico horario real de las próximas 6 horas
+- Visualización de temperaturas sin decimales en toda la UI
+- Tarjeta secundaria con alertas climáticas inferidas a partir del clima actual y el pronóstico cercano
+- Autocomplete con contexto geográfico adicional cuando la API lo provee
+
+## UI / UX
+
+La UI fue diseñada con un enfoque minimalista:
+
+- contenedor centrado
+- cards claras con bordes redondeados y sombra suave
+- paleta de azules suaves, grises y texto oscuro
+- jerarquía visual simple y legible
+- autocomplete compacto debajo del input, con contexto geográfico adicional
+- microanimaciones suaves en la sección de alertas para mejorar la percepción de fluidez
+
+Además, la interacción del buscador incluye:
+
+- loading visible al buscar ciudades o sugerencias
+- navegación con teclado en el dropdown
+- cierre del dropdown al perder foco o hacer click fuera
+- sugerencias con nombre, región y país cuando los datos están disponibles
+
+## Tecnologías utilizadas
+
+- Angular 21
+- TypeScript
+- Standalone Components
+- Signals de Angular
+- Open-Meteo API
+- CSS puro
+- Vitest
+- pnpm
+
+## Arquitectura
+
+El proyecto está organizado con una separación clara entre lógica y presentación:
+
+- `src/app/app.ts` orquesta el estado de la UI, la búsqueda, el autocomplete y la persistencia visual.
+- `src/app/app.html` define la interfaz.
+- `src/app/app.css` contiene el styling puro de la app.
+- `src/app/weather.service.ts` centraliza la integración con Open-Meteo y la transformación de datos.
+- `src/app/weather.models.ts` define los tipos del dominio y de las respuestas de la API.
+- `src/app/last-city.storage.ts` encapsula la persistencia segura en `localStorage`.
+
+La app usa `signals` para mantener el estado reactivo del componente raíz, con una arquitectura simple y sin librerías de estado externas.
+
+## Instalación
+
+### Requisitos previos
+
+- Node.js
+- pnpm
+- Entorno WSL/Linux-native recomendado para validar y desarrollar
+
+### 1. Clonar el repositorio
 
 ```bash
-ng serve
+git clone https://github.com/GeorgeValle/meteo-clima.git
+cd meteo-clima
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### 2. Instalar dependencias
 
 ```bash
-ng generate component component-name
+pnpm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+### 3. Levantar la app en desarrollo
 
 ```bash
-ng generate --help
+pnpm start
 ```
 
-## Building
+Luego abrí la URL que muestre Angular CLI, normalmente:
 
-To build the project run:
+```text
+http://localhost:4200/
+```
+
+## Scripts
+
+| Comando | Descripción |
+| --- | --- |
+| `pnpm start` | Levanta el servidor de desarrollo con Angular |
+| `pnpm run build` | Compila la aplicación para producción |
+| `pnpm run watch` | Compila en modo observación para desarrollo |
+| `pnpm run test` | Ejecuta la suite de tests |
+| `pnpm run deploy` | Genera el build y publica en GitHub Pages usando `ngh` |
+
+### Comandos frecuentes
 
 ```bash
-ng build
+pnpm start
+pnpm run build
+pnpm run watch
+pnpm run test
+pnpm run deploy
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Deploy
 
-## Running unit tests
+El proyecto está preparado para publicación en GitHub Pages.
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
 
 ```bash
-ng test
+pnpm run deploy
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+Internamente ejecuta:
 
 ```bash
-ng e2e
+ng build --base-href=/GeorgeValle/ && ngh --dir=dist/meteo-clima
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+> Nota: si tu repositorio usa otro nombre o ruta, ajustá el `base-href` antes de publicar.
 
-## Additional Resources
+## Notas técnicas
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- La app se construyó en tres fases: base de datos/flujo, UI y validación/integración.
+- La validación real del proyecto se hizo manualmente en WSL con `pnpm`.
+- La búsqueda principal y el autocomplete comparten el mismo flujo geográfico, pero la selección de sugerencias usa la `GeoLocation` concreta elegida por el usuario.
+- El clima actual y el pronóstico horario se obtienen de la misma API de Open-Meteo, incluyendo `hourly` para las próximas 6 horas.
+- Las temperaturas visibles se redondean solo en la presentación para mantener la UI consistente.
+- Las alertas climáticas son inferidas por reglas simples usando el clima actual y el pronóstico cercano; no consumen una API adicional.
+- La interfaz visible está completamente traducida al español.
+- El proyecto evita frameworks CSS y cualquier estado global innecesario.
+
+## Autor
+
+🧑🏻‍💻 George Valle
