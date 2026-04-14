@@ -4,14 +4,15 @@
       <p class="eyebrow">Clima de Open-Meteo</p>
       <h1 id="app-title">{{ title() }}</h1>
       <p class="subtitle">
-        Buscá una ciudad para ver las condiciones actuales, la hora local y un resumen de alertas climáticas (inferidas).
+        Buscá una ciudad o ubicación para ver las condiciones actuales, la hora local y un resumen de alertas climáticas
+        (inferidas).
       </p>
     </header>
 
-    <section class="search-panel" aria-label="Búsqueda de ciudad">
+    <section class="search-panel" aria-label="Búsqueda de ciudad o ubicación">
       <div class="search-box" #searchBox (focusout)="onSearchBoxFocusOut($event)">
         <form class="search-form" (submit)="searchCity(); $event.preventDefault()">
-          <label class="sr-only" for="city-input">Nombre de la ciudad</label>
+          <label class="sr-only" for="city-input">Ciudad o ubicación</label>
           <input
             id="city-input"
             #cityInput
@@ -19,24 +20,29 @@
             [value]="cityQuery()"
             (input)="updateCityQuery(cityInput.value)"
             (keydown)="onCityInputKeydown($event)"
-            placeholder="Ingresá una ciudad"
+            placeholder="Ingresá una ciudad o ubicación"
             autocomplete="off"
             spellcheck="false"
             aria-autocomplete="list"
             [attr.aria-expanded]="suggestions().length > 0"
             aria-controls="city-suggestions"
+            aria-describedby="search-help"
           />
           <button type="submit" [disabled]="loading()">
             {{ loading() ? 'Buscando...' : 'Buscar' }}
           </button>
         </form>
 
+        <p id="search-help" class="search-help">
+          Buscá una ciudad o ubicación.
+        </p>
+
         @if (suggestionsLoading()) {
-          <p class="autocomplete-status">Buscando sugerencias...</p>
+          <p class="autocomplete-status">Buscando sugerencias de ubicación...</p>
         }
 
         @if (suggestions().length > 0) {
-          <ul id="city-suggestions" class="autocomplete-list" aria-label="Sugerencias de ciudades">
+          <ul id="city-suggestions" class="autocomplete-list" aria-label="Sugerencias de ubicaciones">
             @for (suggestion of suggestions(); track suggestion.id) {
               <li>
                 <button
@@ -45,7 +51,7 @@
                   [class.is-active]="activeSuggestionIndex() === $index"
                   (click)="selectSuggestion(suggestion)"
                 >
-                  <span class="autocomplete-item__label">{{ formatSuggestionLabel(suggestion) }}</span>
+                  <span class="autocomplete-item__label">{{ formatLocationLabel(suggestion) }}</span>
                 </button>
               </li>
             }
@@ -92,7 +98,7 @@
       } @else {
         <div class="weather-card__empty">
           <p class="section-kicker">Tarjeta del clima</p>
-          <p>Buscá una ciudad para mostrar el clima actual.</p>
+          <p>Buscá una ciudad o ubicación para mostrar el clima actual.</p>
         </div>
       }
     </section>
@@ -100,21 +106,23 @@
     @if (weather(); as currentWeather) {
       <section class="forecast-card" aria-label="Pronóstico horario">
         <div class="card-heading">
-          <p class="section-kicker">Próximas 6 horas</p>
+          <p class="section-kicker">Próximas 12 horas</p>
           <h2>Pronóstico horario</h2>
         </div>
 
-        <ul class="forecast-list">
-          @for (hour of currentWeather.hourlyForecast; track hour.hour) {
-            <li class="forecast-item">
-              <p class="forecast-item__hour">{{ hour.hour }}</p>
-              <div class="forecast-item__weather" aria-hidden="true">
-                <span class="forecast-item__emoji">{{ hour.weatherEmoji }}</span>
-                <span class="forecast-item__temperature">{{ roundTemperature(hour.temperature) }}°C</span>
-              </div>
-            </li>
-          }
-        </ul>
+        <div class="forecast-scroller">
+          <ul class="forecast-list">
+            @for (hour of currentWeather.hourlyForecast.slice(0, 12); track hour.hour) {
+              <li class="forecast-item">
+                <p class="forecast-item__hour">{{ hour.hour }}</p>
+                <div class="forecast-item__weather" aria-hidden="true">
+                  <span class="forecast-item__emoji">{{ hour.weatherEmoji }}</span>
+                  <span class="forecast-item__temperature">{{ roundTemperature(hour.temperature) }}°C</span>
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
       </section>
     }
 

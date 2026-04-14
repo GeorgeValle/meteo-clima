@@ -1,69 +1,76 @@
 # MeteoClima
 
-MeteoClima es una SPA de clima construida con Angular que permite buscar ciudades por nombre, consultar el estado actual del tiempo desde Open-Meteo y guardar la última ciudad buscada en `localStorage`.
-
-La aplicación está pensada para una experiencia simple, visualmente limpia y rápida de usar, con una interfaz minimalista, alertas climáticas inferidas y autocomplete de ciudades.
+MeteoClima es una SPA de clima hecha con Angular para buscar una ciudad o una ubicación reconocida por Open-Meteo Geocoding, ver el clima actual y consultar un pronóstico horario simple y visual. La interfaz es minimalista, rápida y está pensada para una experiencia clara en escritorio y móvil.
 
 ## Demo
 
-### Demo en vivo en GitHub Pages.
-https://georgevalle.github.io/meteo-clima/
+- Demo en vivo: [https://georgevalle.github.io/meteo-clima/](https://georgevalle.github.io/meteo-clima/)
 
 ## Features principales
 
-- Búsqueda de ciudades por nombre
-- Integración con Open-Meteo para geocoding y clima actual
+- Búsqueda por ciudad y por ubicaciones reconocidas por Open-Meteo Geocoding
+- Autocomplete con contexto geográfico enriquecido cuando la API lo devuelve
 - Persistencia de la última ciudad buscada en `localStorage`
-- Autocomplete de ciudades a partir de 4 caracteres
-- Selección de sugerencias con mouse o teclado
-- Estado de carga y manejo de errores amigable
-- Tarjeta principal con clima actual, temperatura, sensación térmica, mínima, máxima y hora local
-- Pronóstico horario real de las próximas 6 horas
-- Visualización de temperaturas sin decimales en toda la UI
-- Tarjeta secundaria con alertas climáticas inferidas a partir del clima actual y el pronóstico cercano
-- Autocomplete con contexto geográfico adicional cuando la API lo provee
+- Clima actual con temperatura, sensación térmica, mínima, máxima y hora local
+- Ícono meteorológico con emoji
+- Pronóstico horario de 12 horas
+- Carrusel horizontal nativo, sin librerías externas
+- Alertas climáticas inferidas a partir del pronóstico cercano
+- Estados de loading y error para búsqueda y sugerencias
+- Interacción con teclado en el autocomplete
 
 ## UI / UX
 
-La UI fue diseñada con un enfoque minimalista:
+La interfaz prioriza claridad y poco ruido visual:
 
 - contenedor centrado
-- cards claras con bordes redondeados y sombra suave
-- paleta de azules suaves, grises y texto oscuro
-- jerarquía visual simple y legible
-- autocomplete compacto debajo del input, con contexto geográfico adicional
-- microanimaciones suaves en la sección de alertas para mejorar la percepción de fluidez
-
-Además, la interacción del buscador incluye:
-
-- loading visible al buscar ciudades o sugerencias
-- navegación con teclado en el dropdown
-- cierre del dropdown al perder foco o hacer click fuera
-- sugerencias con nombre, región y país cuando los datos están disponibles
+- cards con bordes redondeados y sombra suave
+- paleta de celestes, grises suaves y texto oscuro
+- jerarquía visual simple
+- autocomplete compacto debajo del buscador
+- carrusel horizontal para el pronóstico horario
+- alertas separadas pero coherentes con el resto del diseño
 
 ## Tecnologías utilizadas
 
-- Angular 21
-- TypeScript
-- Standalone Components
-- Signals de Angular
-- Open-Meteo API
-- CSS puro
-- Vitest
-- pnpm
+- **Angular**: SPA con componentes standalone y renderizado reactivo
+- **TypeScript**: tipado estricto para datos, servicios y estado
+- **Signals**: manejo del estado de la UI desde el componente raíz
+- **Open-Meteo API**: geocoding y clima sin API key
+- **pnpm**: gestor de paquetes y ejecución de scripts
+- **CSS puro**: estilos vanilla, sin frameworks visuales
 
 ## Arquitectura
 
-El proyecto está organizado con una separación clara entre lógica y presentación:
+El proyecto se mantiene intencionalmente simple:
 
-- `src/app/app.ts` orquesta el estado de la UI, la búsqueda, el autocomplete y la persistencia visual.
-- `src/app/app.html` define la interfaz.
-- `src/app/app.css` contiene el styling puro de la app.
-- `src/app/weather.service.ts` centraliza la integración con Open-Meteo y la transformación de datos.
-- `src/app/weather.models.ts` define los tipos del dominio y de las respuestas de la API.
-- `src/app/last-city.storage.ts` encapsula la persistencia segura en `localStorage`.
+- `src/app/app.ts` orquesta el estado de la interfaz, la búsqueda, el autocomplete y las alertas inferidas
+- `src/app/weather.service.ts` centraliza el consumo de Open-Meteo y la transformación de datos
+- `src/app/weather.models.ts` define los tipos del dominio y de la API
+- `src/app/last-city.storage.ts` encapsula la lectura y escritura segura en `localStorage`
+- `src/app/app.html` y `src/app/app.css` contienen la presentación de la SPA
 
-La app usa `signals` para mantener el estado reactivo del componente raíz, con una arquitectura simple y sin librerías de estado externas.
+La app no usa routers, estado global complejo ni dependencias de UI externas. El flujo principal es: buscar ciudad/ubicación → resolver geocoding → obtener clima → renderizar vista.
+
+## Problemas resueltos en el proyecto
+
+- Integración con una API sin key, usando exclusivamente Open-Meteo Geocoding y Weather
+- Manejo de estados de búsqueda: `loading`, `error` y restauración desde `localStorage`
+- Autocomplete con deduplicación y labels más útiles cuando la API devuelve contexto administrativo
+- Pronóstico horario dinámico de 12 horas sin cambiar la arquitectura principal
+- Carrusel horizontal sin librerías externas, usando solo CSS puro
+- Alertas inferidas basadas en el pronóstico horario, evitando mensajes contradictorios
+- Alineación del entorno WSL para que Node, `pnpm` y los tests funcionen correctamente con `nvm` y `TMPDIR=/tmp`
+
+## Qué aprendí con este proyecto
+
+- Cómo trabajar con Angular standalone de forma clara y sin exceso de abstracción
+- Cómo manejar estado de UI con `signals` de manera simple y predecible
+- Cómo consumir APIs externas sin API key y traducir su respuesta a modelos propios
+- Cómo diseñar una UX minimalista que siga siendo funcional y legible
+- Cómo organizar el trabajo por fases en `task.md` para mantener el alcance controlado
+- Cómo usar agentes de desarrollo y auditoría definidos en `AGENTS.md` para separar lógica, UI, documentación y QA
+- Cómo depurar problemas de entorno en WSL, especialmente PATH, `pnpm` y temporales de ejecución
 
 ## Instalación
 
@@ -71,7 +78,7 @@ La app usa `signals` para mantener el estado reactivo del componente raíz, con 
 
 - Node.js
 - pnpm
-- Entorno WSL/Linux-native recomendado para validar y desarrollar
+- Entorno WSL/Linux recomendado para desarrollar y validar
 
 ### 1. Clonar el repositorio
 
@@ -106,7 +113,7 @@ http://localhost:4200/
 | `pnpm run build` | Compila la aplicación para producción |
 | `pnpm run watch` | Compila en modo observación para desarrollo |
 | `pnpm run test` | Ejecuta la suite de tests |
-| `pnpm run deploy` | Genera el build y publica en GitHub Pages usando `ngh` |
+| `pnpm run deploy` | Genera el build y publica en GitHub Pages |
 
 ### Comandos frecuentes
 
@@ -120,31 +127,23 @@ pnpm run deploy
 
 ## Deploy
 
-El proyecto está preparado para publicación en GitHub Pages.
-https://georgevalle.github.io/meteo-clima/
+La app se publica en GitHub Pages:
+
+- [https://georgevalle.github.io/meteo-clima/](https://georgevalle.github.io/meteo-clima/)
+
+Para desplegar:
 
 ```bash
 pnpm run deploy
 ```
 
-Internamente ejecuta:
+El script ejecuta:
 
 ```bash
 ng build --base-href=/GeorgeValle/ && ngh --dir=dist/meteo-clima
 ```
 
-> Nota: si tu repositorio usa otro nombre o ruta, ajustá el `base-href` antes de publicar.
-
-## Notas técnicas
-
-- La app se construyó en tres fases: base de datos/flujo, UI y validación/integración.
-- La validación real del proyecto se hizo manualmente en WSL con `pnpm`.
-- La búsqueda principal y el autocomplete comparten el mismo flujo geográfico, pero la selección de sugerencias usa la `GeoLocation` concreta elegida por el usuario.
-- El clima actual y el pronóstico horario se obtienen de la misma API de Open-Meteo, incluyendo `hourly` para las próximas 6 horas.
-- Las temperaturas visibles se redondean solo en la presentación para mantener la UI consistente.
-- Las alertas climáticas son inferidas por reglas simples usando el clima actual y el pronóstico cercano; no consumen una API adicional.
-- La interfaz visible está completamente traducida al español.
-- El proyecto evita frameworks CSS y cualquier estado global innecesario.
+> Si tu repositorio usa otra ruta base, ajustá `--base-href` antes de publicar.
 
 ## Autor
 

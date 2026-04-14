@@ -4,6 +4,7 @@ import {
   buildWeatherUrl,
   describeWeatherCode,
   formatLocalTime,
+  formatLocationLabel,
   WeatherService,
 } from './weather.service';
 
@@ -39,6 +40,36 @@ describe('weather helpers', () => {
   it('formats local-time strings', () => {
     expect(formatLocalTime('2026-04-11T14:35')).toBe('14:35');
     expect(formatLocalTime('2026-04-11T14:35:00Z')).toBe('14:35');
+  });
+
+  it('formats location labels with the first meaningful administrative field', () => {
+    expect(
+      formatLocationLabel({
+        id: 1,
+        latitude: 31.6,
+        longitude: -65.4,
+        name: 'Merlo',
+        admin1: 'Merlo',
+        admin2: 'San Luis',
+        admin3: 'Junín',
+        country: 'Argentina',
+        country_code: 'AR',
+        timezone: 'America/Argentina/San_Luis',
+      }),
+    ).toBe('Merlo, San Luis — Argentina');
+
+    expect(
+      formatLocationLabel({
+        id: 2,
+        latitude: -31.2,
+        longitude: -64.3,
+        name: 'La Calera',
+        admin3: 'Córdoba',
+        country: 'Argentina',
+        country_code: 'AR',
+        timezone: 'America/Argentina/Cordoba',
+      }),
+    ).toBe('La Calera, Córdoba — Argentina');
   });
 
   it('maps weather codes to stable descriptions and emoji', () => {
@@ -91,7 +122,21 @@ describe('WeatherService', () => {
             time: ['2026-04-11'],
           },
           hourly: {
-            temperature_2m: [18.1, 19.2, 20.5, 21.1, 20.3, 19.4, 18.7],
+            temperature_2m: [
+              18.1,
+              19.2,
+              20.5,
+              21.1,
+              20.3,
+              19.4,
+              18.7,
+              18.1,
+              17.6,
+              17.2,
+              16.8,
+              16.4,
+              16.1,
+            ],
             time: [
               '2026-04-11T12:00',
               '2026-04-11T13:00',
@@ -100,8 +145,14 @@ describe('WeatherService', () => {
               '2026-04-11T16:00',
               '2026-04-11T17:00',
               '2026-04-11T18:00',
+              '2026-04-11T19:00',
+              '2026-04-11T20:00',
+              '2026-04-11T21:00',
+              '2026-04-11T22:00',
+              '2026-04-11T23:00',
+              '2026-04-12T00:00',
             ],
-            weather_code: [2, 2, 1, 3, 61, 61, 61],
+            weather_code: [2, 2, 1, 3, 61, 61, 61, 61, 3, 2, 1, 2, 2],
           },
         }),
       });
@@ -128,6 +179,12 @@ describe('WeatherService', () => {
         { hour: '16:00', temperature: 20.3, weatherCode: 61, weatherEmoji: '🌧️' },
         { hour: '17:00', temperature: 19.4, weatherCode: 61, weatherEmoji: '🌧️' },
         { hour: '18:00', temperature: 18.7, weatherCode: 61, weatherEmoji: '🌧️' },
+        { hour: '19:00', temperature: 18.1, weatherCode: 61, weatherEmoji: '🌧️' },
+        { hour: '20:00', temperature: 17.6, weatherCode: 3, weatherEmoji: '⛅' },
+        { hour: '21:00', temperature: 17.2, weatherCode: 2, weatherEmoji: '⛅' },
+        { hour: '22:00', temperature: 16.8, weatherCode: 1, weatherEmoji: '⛅' },
+        { hour: '23:00', temperature: 16.4, weatherCode: 2, weatherEmoji: '⛅' },
+        { hour: '00:00', temperature: 16.1, weatherCode: 2, weatherEmoji: '⛅' },
       ],
       temperature: 18.1,
       timezone: 'Europe/Berlin',
@@ -153,7 +210,21 @@ describe('WeatherService', () => {
             time: ['2026-04-11'],
           },
           hourly: {
-            temperature_2m: [18.1, 19.2, 20.5, 21.1, 20.3, 19.4, 18.7],
+            temperature_2m: [
+              18.1,
+              19.2,
+              20.5,
+              21.1,
+              20.3,
+              19.4,
+              18.7,
+              18.1,
+              17.6,
+              17.2,
+              16.8,
+              16.4,
+              16.1,
+            ],
             time: [
               '2026-04-11T12:00',
               '2026-04-11T13:00',
@@ -162,8 +233,14 @@ describe('WeatherService', () => {
               '2026-04-11T16:00',
               '2026-04-11T17:00',
               '2026-04-11T18:00',
+              '2026-04-11T19:00',
+              '2026-04-11T20:00',
+              '2026-04-11T21:00',
+              '2026-04-11T22:00',
+              '2026-04-11T23:00',
+              '2026-04-12T00:00',
             ],
-            weather_code: [2, 2, 1, 3, 61, 61, 61],
+            weather_code: [2, 2, 1, 3, 61, 61, 61, 61, 3, 2, 1, 2, 2],
           },
         }),
       });
@@ -199,7 +276,7 @@ describe('WeatherService', () => {
 
     await expect(service.searchWeather('Nowhere City')).rejects.toMatchObject({
       code: 'no_results',
-      message: 'No se encontró una ciudad que coincida con "Nowhere City".',
+      message: 'No se encontró una ciudad o ubicación que coincida con "Nowhere City".',
       name: 'WeatherLookupError',
     });
   });
@@ -215,19 +292,33 @@ describe('WeatherService', () => {
               id: 1,
               latitude: 52.52,
               longitude: 13.41,
-              name: 'Berlin',
-              country: 'Germany',
-              country_code: 'DE',
-              timezone: 'Europe/Berlin',
+              name: 'Palermo',
+              admin1: 'Buenos Aires',
+              country: 'Argentina',
+              country_code: 'AR',
+              timezone: 'America/Argentina/Buenos_Aires',
             },
             {
               id: 2,
-              latitude: 40.4,
-              longitude: -3.7,
-              name: 'Berlin',
-              country: 'United States',
-              country_code: 'US',
-              timezone: 'America/New_York',
+              latitude: -31.4,
+              longitude: -64.5,
+              name: 'Villa de Merlo',
+              admin1: 'San Luis',
+              admin2: 'Junín',
+              country: 'Argentina',
+              country_code: 'AR',
+              timezone: 'America/Argentina/San_Luis',
+            },
+            {
+              id: 3,
+              latitude: -31.4,
+              longitude: -64.5,
+              name: 'Villa de Merlo',
+              admin1: 'San Luis',
+              admin2: 'Junín',
+              country: 'Argentina',
+              country_code: 'AR',
+              timezone: 'America/Argentina/San_Luis',
             },
           ],
         }),
@@ -239,8 +330,8 @@ describe('WeatherService', () => {
 
     expect(suggestions).toHaveLength(2);
     expect(suggestions[0]).toMatchObject({
-      name: 'Berlin',
-      country: 'Germany',
+      name: 'Palermo',
+      country: 'Argentina',
     });
   });
 });

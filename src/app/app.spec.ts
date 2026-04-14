@@ -14,6 +14,12 @@ function createHourlyForecast(): readonly WeatherForecastHour[] {
     { hour: '16:00', temperature: 20.8, weatherCode: 3, weatherEmoji: '⛅' },
     { hour: '17:00', temperature: 19.6, weatherCode: 61, weatherEmoji: '🌧️' },
     { hour: '18:00', temperature: 18.9, weatherCode: 61, weatherEmoji: '🌧️' },
+    { hour: '19:00', temperature: 18.2, weatherCode: 61, weatherEmoji: '🌧️' },
+    { hour: '20:00', temperature: 17.8, weatherCode: 3, weatherEmoji: '⛅' },
+    { hour: '21:00', temperature: 17.4, weatherCode: 2, weatherEmoji: '⛅' },
+    { hour: '22:00', temperature: 16.9, weatherCode: 1, weatherEmoji: '⛅' },
+    { hour: '23:00', temperature: 16.5, weatherCode: 2, weatherEmoji: '⛅' },
+    { hour: '00:00', temperature: 16.2, weatherCode: 2, weatherEmoji: '⛅' },
   ];
 }
 
@@ -100,21 +106,26 @@ describe('App', () => {
     expect(compiled.textContent).toContain('Basadas en condiciones climáticas actuales');
   });
 
-  it('should infer rain alerts from current or nearby hourly conditions', async () => {
+  it('should infer rain alerts from the 12-hour forecast', async () => {
     await configureApp();
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
 
     fixture.componentInstance.weather.set(
       createWeatherSnapshot('Berlin', {
-        weatherCode: 61,
         hourlyForecast: [
           { hour: '13:00', temperature: 19, weatherCode: 2, weatherEmoji: '⛅' },
           { hour: '14:00', temperature: 18, weatherCode: 61, weatherEmoji: '🌧️' },
           { hour: '15:00', temperature: 18, weatherCode: 63, weatherEmoji: '🌧️' },
-          { hour: '16:00', temperature: 17, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '16:00', temperature: 17, weatherCode: 61, weatherEmoji: '🌧️' },
           { hour: '17:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
           { hour: '18:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '19:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '20:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '21:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '22:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '23:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '00:00', temperature: 14, weatherCode: 2, weatherEmoji: '⛅' },
         ],
       }),
     );
@@ -122,7 +133,35 @@ describe('App', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('Lluvias probables en las próximas horas.');
-    expect(compiled.textContent).not.toContain('Bajo riesgo de lluvia en las próximas horas.');
+  });
+
+  it('should infer llovizna alerts when precipitation is light', async () => {
+    await configureApp();
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    fixture.componentInstance.weather.set(
+      createWeatherSnapshot('Berlin', {
+        hourlyForecast: [
+          { hour: '13:00', temperature: 19, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '14:00', temperature: 18, weatherCode: 51, weatherEmoji: '🌦️' },
+          { hour: '15:00', temperature: 18, weatherCode: 53, weatherEmoji: '🌦️' },
+          { hour: '16:00', temperature: 17, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '17:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '18:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '19:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '20:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '21:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '22:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '23:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '00:00', temperature: 14, weatherCode: 2, weatherEmoji: '⛅' },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Posibles lloviznas en las próximas horas.');
   });
 
   it('should infer storm alerts when severe codes appear in the forecast', async () => {
@@ -132,7 +171,6 @@ describe('App', () => {
 
     fixture.componentInstance.weather.set(
       createWeatherSnapshot('Berlin', {
-        weatherCode: 95,
         hourlyForecast: [
           { hour: '13:00', temperature: 19, weatherCode: 2, weatherEmoji: '⛅' },
           { hour: '14:00', temperature: 18, weatherCode: 95, weatherEmoji: '⛈️' },
@@ -140,13 +178,166 @@ describe('App', () => {
           { hour: '16:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
           { hour: '17:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
           { hour: '18:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '19:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '20:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '21:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '22:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '23:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '00:00', temperature: 14, weatherCode: 2, weatherEmoji: '⛅' },
         ],
       }),
     );
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Tormentas probables en las próximas horas.');
+    expect(compiled.textContent).toContain('Posibles tormentas en las próximas horas.');
+  });
+
+  it('should infer fog alerts when fog codes appear in the forecast', async () => {
+    await configureApp();
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    fixture.componentInstance.weather.set(
+      createWeatherSnapshot('Berlin', {
+        hourlyForecast: [
+          { hour: '13:00', temperature: 19, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '14:00', temperature: 18, weatherCode: 45, weatherEmoji: '🌫️' },
+          { hour: '15:00', temperature: 17, weatherCode: 48, weatherEmoji: '🌫️' },
+          { hour: '16:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '17:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '18:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '19:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '20:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '21:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '22:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '23:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '00:00', temperature: 14, weatherCode: 2, weatherEmoji: '⛅' },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Presencia de neblina en las próximas horas.');
+  });
+
+  it('should infer heat alerts when clear forecast hours are hot', async () => {
+    await configureApp();
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    fixture.componentInstance.weather.set(
+      createWeatherSnapshot('Berlin', {
+        hourlyForecast: [
+          { hour: '13:00', temperature: 27.2, weatherCode: 0, weatherEmoji: '☀️' },
+          { hour: '14:00', temperature: 28.1, weatherCode: 0, weatherEmoji: '☀️' },
+          { hour: '15:00', temperature: 26, weatherCode: 1, weatherEmoji: '⛅' },
+          { hour: '16:00', temperature: 25, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '17:00', temperature: 24, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '18:00', temperature: 23, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '19:00', temperature: 22, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '20:00', temperature: 22, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '21:00', temperature: 21, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '22:00', temperature: 20, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '23:00', temperature: 19, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '00:00', temperature: 18, weatherCode: 2, weatherEmoji: '⛅' },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Alta exposición solar en las próximas horas.');
+  });
+
+  it('should avoid contradictory heat alert when weather risk is already present', async () => {
+    await configureApp();
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    fixture.componentInstance.weather.set(
+      createWeatherSnapshot('Berlin', {
+        hourlyForecast: [
+          { hour: '13:00', temperature: 29, weatherCode: 0, weatherEmoji: '☀️' },
+          { hour: '14:00', temperature: 28, weatherCode: 95, weatherEmoji: '⛈️' },
+          { hour: '15:00', temperature: 27, weatherCode: 1, weatherEmoji: '☀️' },
+          { hour: '16:00', temperature: 25, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '17:00', temperature: 24, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '18:00', temperature: 23, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '19:00', temperature: 22, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '20:00', temperature: 21, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '21:00', temperature: 20, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '22:00', temperature: 19, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '23:00', temperature: 18, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '00:00', temperature: 17, weatherCode: 2, weatherEmoji: '⛅' },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+
+    const alerts = fixture.componentInstance.inferredAlerts();
+    expect(alerts).toContain('Posibles tormentas en las próximas horas.');
+    expect(alerts).not.toContain('Alta exposición solar en las próximas horas.');
+    expect(alerts.length).toBeLessThanOrEqual(2);
+  });
+
+  it('should infer cold alerts when forecast temperatures are low', async () => {
+    await configureApp();
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    fixture.componentInstance.weather.set(
+      createWeatherSnapshot('Berlin', {
+        hourlyForecast: [
+          { hour: '13:00', temperature: 8.2, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '14:00', temperature: 8, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '15:00', temperature: 7.6, weatherCode: 1, weatherEmoji: '⛅' },
+          { hour: '16:00', temperature: 7.2, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '17:00', temperature: 7, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '18:00', temperature: 6.8, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '19:00', temperature: 6.6, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '20:00', temperature: 6.4, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '21:00', temperature: 6.2, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '22:00', temperature: 6, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '23:00', temperature: 5.8, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '00:00', temperature: 5.6, weatherCode: 2, weatherEmoji: '⛅' },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Temperaturas bajas en las próximas horas.');
+  });
+
+  it('should fall back to stable conditions when the forecast has no relevant events', async () => {
+    await configureApp();
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    fixture.componentInstance.weather.set(
+      createWeatherSnapshot('Berlin', {
+        hourlyForecast: [
+          { hour: '13:00', temperature: 19, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '14:00', temperature: 18, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '15:00', temperature: 17, weatherCode: 1, weatherEmoji: '⛅' },
+          { hour: '16:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '17:00', temperature: 16, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '18:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '19:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '20:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '21:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '22:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '23:00', temperature: 15, weatherCode: 2, weatherEmoji: '⛅' },
+          { hour: '00:00', temperature: 14, weatherCode: 2, weatherEmoji: '⛅' },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Condiciones estables en las próximas horas.');
   });
 
   it('should round all visible temperatures in the weather card and hourly forecast', async () => {
@@ -158,6 +349,7 @@ describe('App', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelectorAll('.forecast-item')).toHaveLength(12);
     expect(compiled.textContent).toContain('18°C');
     expect(compiled.textContent).toContain('17°C');
     expect(compiled.textContent).toContain('22°C');
@@ -253,18 +445,40 @@ describe('App', () => {
     const suggestions = [
       {
         id: 1,
-        latitude: 52.52,
-        longitude: 13.41,
-        name: 'Córdoba',
-        admin1: 'Córdoba',
+        latitude: -34.72,
+        longitude: -58.64,
+        name: 'Merlo',
+        admin1: 'Merlo',
+        admin2: 'Buenos Aires',
+        country: 'Argentina',
+        country_code: 'AR',
+        timezone: 'America/Argentina/Buenos_Aires',
+      },
+      {
+        id: 2,
+        latitude: -32.35,
+        longitude: -65.01,
+        name: 'Villa de Merlo',
+        admin1: 'San Luis',
+        admin2: 'Junín',
+        country: 'Argentina',
+        country_code: 'AR',
+        timezone: 'America/Argentina/San_Luis',
+      },
+      {
+        id: 3,
+        latitude: -31.41,
+        longitude: -64.19,
+        name: 'La Calera',
+        admin3: 'Córdoba',
         country: 'Argentina',
         country_code: 'AR',
         timezone: 'America/Argentina/Cordoba',
       },
       {
-        id: 2,
-        latitude: 51.1,
-        longitude: -0.2,
+        id: 4,
+        latitude: -34.58,
+        longitude: -58.43,
         name: 'Palermo',
         admin1: 'Buenos Aires',
         country: 'Argentina',
@@ -274,7 +488,7 @@ describe('App', () => {
     ] satisfies readonly GeoLocation[];
 
     const searchCitySuggestions = vi.fn().mockResolvedValue(suggestions);
-    const searchWeatherByLocation = vi.fn().mockResolvedValue(createWeatherSnapshot('Córdoba'));
+    const searchWeatherByLocation = vi.fn().mockResolvedValue(createWeatherSnapshot('Merlo'));
 
     await configureApp({ searchWeatherByLocation, searchCitySuggestions });
 
@@ -282,24 +496,26 @@ describe('App', () => {
     fixture.detectChanges();
 
     const app = fixture.componentInstance;
-    app.updateCityQuery('Córd');
+    app.updateCityQuery('Merl');
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(searchCitySuggestions).toHaveBeenCalledWith('Córd');
+    expect(searchCitySuggestions).toHaveBeenCalledWith('Merl');
     const suggestionButtons = fixture.nativeElement.querySelectorAll('.autocomplete-item');
-    expect(suggestionButtons).toHaveLength(2);
-    expect((suggestionButtons[0] as HTMLButtonElement).textContent).toContain('Córdoba, Córdoba — Argentina');
-    expect((suggestionButtons[1] as HTMLButtonElement).textContent).toContain('Palermo, Buenos Aires — Argentina');
+    expect(suggestionButtons).toHaveLength(4);
+    expect((suggestionButtons[0] as HTMLButtonElement).textContent).toContain('Merlo, Buenos Aires — Argentina');
+    expect((suggestionButtons[1] as HTMLButtonElement).textContent).toContain('Villa de Merlo, San Luis — Argentina');
+    expect((suggestionButtons[2] as HTMLButtonElement).textContent).toContain('La Calera, Córdoba — Argentina');
+    expect((suggestionButtons[3] as HTMLButtonElement).textContent).toContain('Palermo, Buenos Aires — Argentina');
 
     (suggestionButtons[0] as HTMLButtonElement).click();
     await fixture.whenStable();
     fixture.detectChanges();
 
     expect(searchWeatherByLocation).toHaveBeenCalledWith(suggestions[0]);
-    expect(app.cityQuery()).toBe('Córdoba');
+    expect(app.cityQuery()).toBe('Merlo');
     expect(app.suggestions()).toHaveLength(0);
-    expect(app.weather()?.city).toBe('Córdoba');
+    expect(app.weather()?.city).toBe('Merlo');
   });
 
   it('should show autocomplete loading while fetching suggestions', async () => {

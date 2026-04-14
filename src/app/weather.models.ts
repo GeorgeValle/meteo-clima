@@ -5,6 +5,8 @@ export interface GeoLocation {
   readonly longitude: number;
   readonly admin1?: string;
   readonly admin2?: string;
+  readonly admin3?: string;
+  readonly admin4?: string;
   readonly country: string;
   readonly country_code: string;
   readonly timezone: string;

@@ -10,6 +10,12 @@ Build MeteoClima as a minimal Angular SPA that lets the user search for a city, 
 - Validation note: `pnpm run build` OK in WSL; UI reviewed manually in local execution; CSS size warning was non-blocking
 - Phase 3: completed / approved
 - Validation note: QA audit approved Phase 3 integration and behavior coverage
+- Hourly forecast carousel enhancement: completed / approved
+- Validation note: 12-hour horizontal carousel implemented with scroll-snap; QA audit approved the scoped UI update
+- Location-aware search enhancement: completed / approved
+- Validation note: build and unit tests passed in WSL; QA audit approved the final state
+- Hourly alert inference enhancement: completed / approved
+- Validation note: build and unit tests passed in WSL for the 12-hour forecast-based alerts
 
 ## Constraints
 - The application must remain a single-page application built with Angular.

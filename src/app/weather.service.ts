@@ -30,6 +30,9 @@ export interface WeatherCondition {
   readonly emoji: string;
 }
 
+const UPCOMING_HOURLY_FORECAST_COUNT = 12;
+const LOCATION_ADMIN_FIELDS = ['admin1', 'admin2', 'admin3', 'admin4'] as const;
+
 export function buildGeocodingUrl(cityName: string, count = 1): string {
   const params = new URLSearchParams({
     count: String(count),
@@ -116,12 +119,26 @@ export function describeWeatherCode(code: number): WeatherCondition {
   return { description: 'Clima mixto', emoji: '🌤️' };
 }
 
+export function formatLocationLabel(location: GeoLocation): string {
+  const region = getLocationRegion(location);
+
+  if (region) {
+    return `${location.name}, ${region} — ${location.country}`;
+  }
+
+  return `${location.name} — ${location.country}`;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
 function isString(value: unknown): value is string {
   return typeof value === 'string';
+}
+
+function isOptionalString(value: unknown): value is string | undefined {
+  return typeof value === 'undefined' || isString(value);
 }
 
 function isFiniteNumber(value: unknown): value is number {
@@ -146,6 +163,10 @@ function isLocation(value: unknown): value is GeoLocation {
     isFiniteNumber(value['latitude']) &&
     isFiniteNumber(value['longitude']) &&
     isString(value['name']) &&
+    isOptionalString(value['admin1']) &&
+    isOptionalString(value['admin2']) &&
+    isOptionalString(value['admin3']) &&
+    isOptionalString(value['admin4']) &&
     isString(value['country']) &&
     isString(value['country_code']) &&
     isString(value['timezone'])
@@ -229,6 +250,66 @@ function buildUpcomingHourlyForecast(
   return forecast;
 }
 
+function normalizeLocationText(value: string): string {
+  return value.trim().toLocaleLowerCase();
+}
+
+function getLocationRegion(location: GeoLocation): string | null {
+  const normalizedName = normalizeLocationText(location.name);
+  const candidates = LOCATION_ADMIN_FIELDS.flatMap((field) => {
+    const value = location[field]?.trim();
+
+    return value ? [value] : [];
+  });
+  const uniqueCandidates = candidates.filter((candidate, index, values) => {
+    const normalizedCandidate = normalizeLocationText(candidate);
+
+    return (
+      normalizedCandidate !== normalizedName &&
+      values.findIndex((value) => normalizeLocationText(value) === normalizedCandidate) === index
+    );
+  });
+
+  return uniqueCandidates[0] ?? null;
+}
+
+function getLocationDeduplicationKey(location: GeoLocation): string {
+  const roundedLatitude = location.latitude.toFixed(4);
+  const roundedLongitude = location.longitude.toFixed(4);
+
+  return [
+    normalizeLocationText(location.name),
+    normalizeLocationText(location.country),
+    normalizeLocationText(location.country_code),
+    ...LOCATION_ADMIN_FIELDS.map((field) => normalizeLocationText(location[field] ?? '')),
+    roundedLatitude,
+    roundedLongitude,
+  ].join('|');
+}
+
+function dedupeLocations(locations: readonly GeoLocation[]): readonly GeoLocation[] {
+  const seenById = new Set<number>();
+  const seenByContext = new Set<string>();
+  const uniqueLocations: GeoLocation[] = [];
+
+  for (const location of locations) {
+    if (seenById.has(location.id)) {
+      continue;
+    }
+
+    const key = getLocationDeduplicationKey(location);
+    if (seenByContext.has(key)) {
+      continue;
+    }
+
+    seenById.add(location.id);
+    seenByContext.add(key);
+    uniqueLocations.push(location);
+  }
+
+  return uniqueLocations;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -251,7 +332,7 @@ export class WeatherService {
       return [];
     }
 
-    return results.filter(isLocation);
+    return dedupeLocations(results.filter(isLocation));
   }
 
   async searchWeatherByLocation(location: GeoLocation): Promise<WeatherSnapshot> {
@@ -262,7 +343,7 @@ export class WeatherService {
     const query = cityName.trim();
 
     if (!query) {
-      throw new WeatherLookupError('Ingresá una ciudad.', 'empty_query');
+      throw new WeatherLookupError('Ingresá una ciudad o ubicación.', 'empty_query');
     }
 
     const location = await this.findLocation(query);
@@ -272,14 +353,20 @@ export class WeatherService {
   private async findLocation(cityName: string): Promise<GeoLocation> {
     const response = await this.requestJson(buildGeocodingUrl(cityName));
     if (!isRecord(response)) {
-      throw new WeatherLookupError(`No se encontró una ciudad que coincida con "${cityName}".`, 'no_results');
+      throw new WeatherLookupError(
+        `No se encontró una ciudad o ubicación que coincida con "${cityName}".`,
+        'no_results',
+      );
     }
 
     const results = response['results'];
     const location = Array.isArray(results) ? results[0] : undefined;
 
     if (!location || !isLocation(location)) {
-      throw new WeatherLookupError(`No se encontró una ciudad que coincida con "${cityName}".`, 'no_results');
+      throw new WeatherLookupError(
+        `No se encontró una ciudad o ubicación que coincida con "${cityName}".`,
+        'no_results',
+      );
     }
 
     return location;
@@ -310,11 +397,15 @@ export class WeatherService {
       );
     }
 
-    const hourlyForecast = buildUpcomingHourlyForecast(hourly, current['time'], 6);
+    const hourlyForecast = buildUpcomingHourlyForecast(
+      hourly,
+      current['time'],
+      UPCOMING_HOURLY_FORECAST_COUNT,
+    );
 
-    if (hourlyForecast.length !== 6) {
+    if (hourlyForecast.length !== UPCOMING_HOURLY_FORECAST_COUNT) {
       throw new WeatherLookupError(
-        'Open-Meteo no incluyó seis horas futuras de pronóstico.',
+        'Open-Meteo no incluyó doce horas futuras de pronóstico.',
         'invalid_response',
       );
     }

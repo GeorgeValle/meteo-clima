@@ -11,11 +11,20 @@ import {
 } from '@angular/core';
 import { readLastCity, writeLastCity } from './last-city.storage';
 import { GeoLocation, WeatherSnapshot } from './weather.models';
-import { WeatherLookupError, WeatherService } from './weather.service';
+import {
+  formatLocationLabel as formatGeoLocationLabel,
+  WeatherLookupError,
+  WeatherService,
+} from './weather.service';
 
-const RAIN_CODES = new Set([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82]);
+const RAIN_CODES = new Set([61, 63, 65, 66, 67, 80, 81, 82]);
 const STORM_CODES = new Set([95, 96, 99]);
-const SNOW_CODES = new Set([71, 73, 75, 77, 85, 86]);
+const FOG_CODES = new Set([45, 48]);
+const DRIZZLE_CODES = new Set([51, 53, 55, 56, 57]);
+const CLEAR_CODES = new Set([0, 1]);
+const HOT_TEMPERATURE_THRESHOLD = 27;
+const COLD_TEMPERATURE_THRESHOLD = 8;
+const RAIN_ALERT_THRESHOLD = 3;
 
 @Component({
   selector: 'app-root',
@@ -27,6 +36,7 @@ const SNOW_CODES = new Set([71, 73, 75, 77, 85, 86]);
 })
 export class App implements OnInit {
   readonly title = signal('MeteoClima');
+  readonly formatLocationLabel = formatGeoLocationLabel;
   readonly cityQuery = signal('');
   readonly suggestions = signal<readonly GeoLocation[]>([]);
   readonly suggestionsLoading = signal(false);
@@ -67,59 +77,27 @@ export class App implements OnInit {
     void this.runSearch(suggestion, true);
   }
 
-  formatSuggestionLabel(suggestion: GeoLocation): string {
-    const region = [suggestion.admin1, suggestion.admin2].find((value) => value?.trim());
-
-    if (region?.trim()) {
-      return `${suggestion.name}, ${region.trim()} — ${suggestion.country}`;
-    }
-
-    return `${suggestion.name} — ${suggestion.country}`;
-  }
-
   roundTemperature(value: number): number {
     return Math.round(value);
   }
 
   protected buildInferredAlerts(weather: WeatherSnapshot | null): readonly string[] {
     if (!weather) {
-      return ['Buscá una ciudad para ver alertas climáticas inferidas.'];
+      return ['Buscá una ciudad o ubicación para ver alertas climáticas inferidas.'];
     }
 
-    const forecastCodes = [
-      weather.weatherCode,
-      ...weather.hourlyForecast.slice(0, 6).map((hour) => hour.weatherCode),
-    ];
+    const forecast = weather.hourlyForecast.slice(0, 12);
+    const weatherAlert = this.buildWeatherAlert(forecast);
+    const temperatureAlert = this.buildTemperatureAlert(forecast, Boolean(weatherAlert));
+    const alerts = [weatherAlert, temperatureAlert]
+      .filter((alert): alert is string => Boolean(alert))
+      .slice(0, 2);
 
-    if (forecastCodes.some((code) => STORM_CODES.has(code))) {
-      return [
-        'Tormentas probables en las próximas horas.',
-        'Seguí la evolución del cielo durante la jornada.',
-        'El pronóstico cercano muestra actividad eléctrica posible.',
-      ];
+    if (alerts.length > 0) {
+      return alerts;
     }
 
-    if (forecastCodes.some((code) => RAIN_CODES.has(code))) {
-      return [
-        'Lluvias probables en las próximas horas.',
-        'Es posible que aparezcan chaparrones o lluvia débil.',
-        'Conviene seguir el pronóstico cercano antes de salir.',
-      ];
-    }
-
-    if (forecastCodes.some((code) => SNOW_CODES.has(code))) {
-      return [
-        'Precipitaciones invernales posibles en las próximas horas.',
-        'La temperatura cercana sugiere condiciones frías estables.',
-        'Se recomienda seguir la evolución del pronóstico.',
-      ];
-    }
-
-    return [
-      'Sin señales meteorológicas relevantes en las próximas horas.',
-      'Las condiciones se mantienen estables por ahora.',
-      'El pronóstico cercano no muestra cambios bruscos.',
-    ];
+    return ['Condiciones estables en las próximas horas.'];
   }
 
   onCityInputKeydown(event: KeyboardEvent): void {
@@ -190,7 +168,7 @@ export class App implements OnInit {
 
     if (!query) {
       this.weather.set(null);
-      this.error.set('Ingresá una ciudad.');
+      this.error.set('Ingresá una ciudad o ubicación.');
       return;
     }
 
@@ -260,6 +238,51 @@ export class App implements OnInit {
     this.suggestions.set([]);
     this.suggestionsLoading.set(false);
     this.activeSuggestionIndex.set(-1);
+  }
+
+  private buildWeatherAlert(forecast: WeatherSnapshot['hourlyForecast']): string | null {
+    const stormHours = forecast.filter((hour) => STORM_CODES.has(hour.weatherCode)).length;
+    if (stormHours > 0) {
+      return 'Posibles tormentas en las próximas horas.';
+    }
+
+    const fogHours = forecast.filter((hour) => FOG_CODES.has(hour.weatherCode)).length;
+    if (fogHours > 0) {
+      return 'Presencia de neblina en las próximas horas.';
+    }
+
+    const rainHours = forecast.filter((hour) => RAIN_CODES.has(hour.weatherCode)).length;
+    const drizzleHours = forecast.filter((hour) => DRIZZLE_CODES.has(hour.weatherCode)).length;
+
+    if (rainHours >= RAIN_ALERT_THRESHOLD) {
+      return 'Lluvias probables en las próximas horas.';
+    }
+
+    if (rainHours > 0 || drizzleHours > 0) {
+      return 'Posibles lloviznas en las próximas horas.';
+    }
+
+    return null;
+  }
+
+  private buildTemperatureAlert(
+    forecast: WeatherSnapshot['hourlyForecast'],
+    hasWeatherAlert: boolean,
+  ): string | null {
+    const hotClearHours = forecast.filter(
+      (hour) => CLEAR_CODES.has(hour.weatherCode) && hour.temperature >= HOT_TEMPERATURE_THRESHOLD,
+    ).length;
+
+    if (!hasWeatherAlert && hotClearHours > 0) {
+      return 'Alta exposición solar en las próximas horas.';
+    }
+
+    const coldHours = forecast.filter((hour) => hour.temperature <= COLD_TEMPERATURE_THRESHOLD).length;
+    if (coldHours > 0) {
+      return 'Temperaturas bajas en las próximas horas.';
+    }
+
+    return null;
   }
 
   private moveActiveSuggestion(delta: number): void {

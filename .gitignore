@@ -46,7 +46,7 @@ Thumbs.db
 #codex-agent
 !.codex-agent/
 !.codex/
-|.code
+!.code
 .codex-agent/
 .codex/
 .code
