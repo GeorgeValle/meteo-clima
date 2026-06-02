@@ -1,5 +1,6 @@
 # MeteoClima
 
+Sean Bienvenidos: 
 MeteoClima es una SPA de clima hecha con Angular para buscar una ciudad o una ubicación reconocida por Open-Meteo Geocoding, ver el clima actual y consultar un pronóstico horario simple y visual. La interfaz es minimalista, rápida y está pensada para una experiencia clara en escritorio y móvil.
 
 ## Demo
@@ -144,6 +145,12 @@ ng build --base-href=/GeorgeValle/ && ngh --dir=dist/meteo-clima
 ```
 
 > Si tu repositorio usa otra ruta base, ajustá `--base-href` antes de publicar.
+
+## Agradecimientos
+
+- Gracias por tomarte las molestias de echarle un ojo a esta simple configuración, y que no se sufra por falta de hamburguesas. 
+
+
 
 ## Autor
 
